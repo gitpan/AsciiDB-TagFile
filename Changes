@@ -1,5 +1,18 @@
-Revision history for Perl extension AsciiDB::Tag.
+Revision history for Perl extension AsciiDB::TagFile.
 
 1.00  Fri Oct  3 19:36:47 1997
 	- original version; created by Jose A. Rodriguez <josear@ac.upc.es>
 
+1.01  Thu Dec 11 19:17:01 1997
+	- Added FILEMODE parameter; by Jose A. Rodriguez <josear@ac.upc.es>
+	- Added support for EXISTS
+
+1.02  Thu Jan  8 16:41:34 1998
+	- Reduced memory usage (removed an internal hash)
+
+	Suggested by Michael Pepper <pepper@w3pg.com>:
+
+	- Removed perl version 5.004 dependences (foreach my $variable...)
+	- Fixed bug, now record copies work (ie. $a{'r1'} = $a{'r2'})
+	- Fixed bug, now a warning is displayed if the DIRECTORY does
+	- Added basic support for locking

@@ -1,7 +1,5 @@
 package AsciiDB::TagFile;
 
-require 5.003;
-
 # Copyright (c) 1997 Jose A. Rodriguez. All rights reserved.
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
@@ -11,7 +9,7 @@ require Tie::Hash;
 
 use vars qw($VERSION);
 
-$VERSION = '1.00';
+$VERSION = '1.02';
 
 use Carp;
 use AsciiDB::TagRecord;
@@ -25,7 +23,12 @@ sub TIEHASH {
 	$self->{_SUFIX} = $params{SUFIX} || '';
 	$self->{_SCHEMA} = $params{SCHEMA};
 	$self->{_READONLY} = $params{READONLY};
-	$self->{_RECORDS} = {};
+	$self->{_FILEMODE} = $params{FILEMODE};
+	$self->{_LOCK} = $params{LOCK} || 0;
+
+	unless (-d $self->{_DIRECTORY}) {
+		croak "Directory '$params{DIRECTORY}' does not exist";
+	}
 
 	bless $self, $class;
 }
@@ -35,20 +38,21 @@ sub FETCH {
 
 	return $self->{$key} if defined ($self->{$key});
 
-	my %record;
-	$self->{_RECORDS}{$key} = tie %record, 'AsciiDB::TagRecord',
-        	FILENAME => "$self->{_DIRECTORY}/$key" . $self->{_SUFIX},
-        	SCHEMA => $self->{_SCHEMA},
-		READONLY => $self->{_READONLY};
-	
-	$self->{$key} = \%record;
-	return $self->{$key};
+	return $self->newRecord($key);
 }
 
 sub STORE {
 	my ($self, $key, $value) = @_;
 
-	$self->{$key} = $value;
+	# Return if the user is assigning an object to itself ($a{A} = $a{A})
+	return if defined $self->{$key} && $self->{$key} == $value;
+
+	$self->newRecord($key) unless (defined $self->{$key});
+
+	my $field;
+	foreach $field (keys %{$self->{$key}}) {
+		$self->{$key}{$field} = $value->{$field};
+	}
 }
 
 sub FIRSTKEY {
@@ -76,15 +80,21 @@ sub NEXTKEY {
 	shift @{$self->{_ITERATOR}};
 }
 
+sub EXISTS {
+	my ($self, $key) = @_;
+
+	$self->{$key} || -f $self->fileName($key) || 0;
+}
+
 sub DELETE {
 	my ($self, $key) = @_;
 
 	return if $self->{_READONLY};
 
-	unlink "$self->{_DIRECTORY}/$key" . $self->{_SUFIX};
+	unlink $self->fileName($key);
 
-	$self->{_OBJECTS}->{$key}->deleteRecord()
-		if defined $self->{_OBJECTS}->{$key};
+	tied($self->{$key})->deleteRecord()
+		if tied($self->{$key});
 
 	delete $self->{$key} if defined $self->{$key};
 }
@@ -92,9 +102,31 @@ sub DELETE {
 sub sync {
 	my $self = shift;
 
-	foreach my $record (values %{$self->{_RECORDS}}) {
-		$record->sync();
+	my $record;
+	foreach $record (values %{$self}) {
+		tied($record)->sync() if tied($record);
 	}
+}
+
+sub newRecord {
+	my $self = shift;
+	my ($key) = @_;
+
+	my %record;
+	tie %record, 'AsciiDB::TagRecord',
+        	FILENAME => $self->fileName($key),
+        	SCHEMA => $self->{_SCHEMA},
+		READONLY => $self->{_READONLY},
+		FILEMODE => $self->{_FILEMODE};
+	
+	$self->{$key} = \%record;
+}
+
+sub fileName {
+	my $self = shift;
+	my ($key) = @_;
+
+	"$$self{_DIRECTORY}/$key$$self{_SUFIX}";
 }
 
 1;
@@ -110,7 +142,9 @@ AsciiDB::TagFile - Tie class for a simple ASCII database
  $tieObj = tie %hash, 'AsciiDB::TagFile',
         DIRECTORY => $directory,
         SUFIX => $sufix,
+	LOCK => $bool,
 	READONLY => $bool,
+	FILEMODE => $mode,
         SCHEMA => { 
 		ORDER => $arrayRef 
 	};
@@ -120,6 +154,9 @@ AsciiDB::TagFile - Tie class for a simple ASCII database
 
  # Get all record keys
  @array = keys %hash; 
+
+ # Check if a record exists
+ exists $hash{$recordKey}
 
  # Get a field
  $scalar = $hash{$recordKey}{$fieldName};
@@ -175,12 +212,31 @@ be stored into file: 'josear.record'.
 
 If this parameter is not supplied the records won't have a sufix.
 
+=item LOCK
+
+If you set this parameter to 1 TagFile will perform basic locking.
+Record files will be share locked before reading them, and exclusive
+locked when syncing (writing) them.
+
+This basic locking only guarantees that a record file is always
+written correctly, but as TagFile keep records in memory you can still suffer
+consistency problems reading fields.
+
+The default value is 0, i.e. the database won't be locked.
+
 =item READONLY
 
 If you set this parameter to 1 the database will be read only and
 all changes will be discarted.
 
 The default value is 0, i.e. the database can be changed.
+
+=item FILEMODE
+
+Filemode assigned to new created files. 
+
+If this parameter is not supplied the new created files will have the
+default permissions.
 
 =item SCHEMA
 
@@ -214,14 +270,16 @@ you can call the B<sync> method to do it.
  $dbObj = tie %tietag, 'AsciiDB::TagFile',
         DIRECTORY => 'data',
         SUFIX => '.tfr',
+        FILEMODE => 0644,
         SCHEMA => { ORDER => ['name', 'address'] };
 
  $tietag{'jose'}{'name'} = 'Jose A. Rodriguez';
  $tietag{'jose'}{'address'} = 'Granollers, Barcelona, SPAIN';
  $tietag{'cindy'}{'name'} = 'Cindy Crawford';
- $tietag{'cindy'}{'address'} = 'Unknown';
+ $tietag{'cindy'}{'address'} = 'YouBetIwouldLikeToKnowIt';
 
- foreach my $key (keys %tietag) {
+ my $key;
+ foreach $key (keys %tietag) {
 	print $tietag{$key}{'name'}, "\t", $tietag{$key}{'address'}, 
 		"\n";
  }

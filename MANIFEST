@@ -2,8 +2,8 @@ MANIFEST
 Makefile.PL
 README
 Changes
-TagFile.pm		(v1.00)	Tie interface to a set of Tagged Records
-TagRecord.pm		(v1.00) Tie interface to a Tagged record
+TagFile.pm		Tie interface to a set of Tagged Records
+TagRecord.pm		Tie interface to a Tagged record
 t/tietag1.t		Test file (STORE)
 t/tietag2.t		Test file (FETCH)
 t/tietag3.t		Test file (DELETE)

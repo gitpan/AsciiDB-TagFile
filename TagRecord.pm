@@ -19,6 +19,8 @@ sub TIEHASH {
 	$self->{_FILENAME} = $params{FILENAME};
 	$self->{_SCHEMA} = $params{SCHEMA};
 	$self->{_READONLY} = $params{READONLY};
+	$self->{_FILEMODE} = $params{FILEMODE};
+	$self->{_LOCK} = $params{LOCK};
 
 	bless $self, $class;
 }
@@ -81,7 +83,10 @@ sub load {
 	my $fieldName = '';
 
 	open (RECORD, $self->{_FILENAME})
-		or croak "Can't open @{[$self->{_FILENAME}]} record";
+		or croak "Can't open $self->{_FILENAME} record";
+
+	flock(RECORD, 1) if $self->{_LOCK}; # Get shared lock
+
 	my $line;
 	while (defined ($line = <RECORD>)) {
 		if ($line =~ /^\[(.+)\]:\s?(.*)$/) {
@@ -92,6 +97,9 @@ sub load {
 		chomp $line;
 		$self->{$fieldName} .= "\n$line";
 	}
+
+	flock(RECORD, 8) if $self->{_LOCK}; # Unlock file
+
 	close (RECORD);
 
 	$self->{_LOADED} = 1;
@@ -110,14 +118,26 @@ sub sync {
 
 	return if $self->{_READONLY} || ! $self->{_UPDATED};
 
-	open (RECORD, "> @{[$self->{_FILENAME}]}")
-		or croak "Can't create @{[$self->{_FILENAME}]} record";
+	open (RECORD, "> $$self{_FILENAME}")
+		or croak "Can't create $$self{_FILENAME} record";
+
+	flock(RECORD, 2) if $self->{_LOCK}; # Get shared lock
+
 	my %schema = %{$self->{_SCHEMA}};
-	foreach my $fieldName (@{$schema{ORDER}}) {
+	my $fieldName;
+	foreach $fieldName (@{$schema{ORDER}}) {
 		print RECORD "[$fieldName]: ", 
 			($self->{$fieldName} || ''), "\n";
 	}
+
+	flock(RECORD, 8) if $self->{_LOCK}; # Unlock file
+
 	close (RECORD);
+
+	if (defined $self->{_FILEMODE}) {
+		chmod ($self->{_FILEMODE}, $self->{_FILENAME})
+			or croak "Can't chmod $$self{_FILENAME}";
+	}
 
 	delete $self->{_UPDATED};
 }

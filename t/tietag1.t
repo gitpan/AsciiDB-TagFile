@@ -14,7 +14,9 @@ tie %tietag, 'AsciiDB::TagFile',
 print "ok 1\n";
 
 $tietag{'record1'}{'a'} = 'Fa';
+$tietag{'record1'}{'b'} = 'F1b';
 $tietag{'record2'}{'b'} = 'Fb';
+tied(%tietag)->sync();
 
 print "ok 2\n";
 
