@@ -14,5 +14,14 @@ Revision history for Perl extension AsciiDB::TagFile.
 
 	- Removed perl version 5.004 dependences (foreach my $variable...)
 	- Fixed bug, now record copies work (ie. $a{'r1'} = $a{'r2'})
-	- Fixed bug, now a warning is displayed if the DIRECTORY does
+	- Fixed bug, now a warning is displayed if the DIRECTORY does not
+		exist
 	- Added basic support for locking
+
+1.03  Tue Feb 17 09:58:05 1998
+	- Fixed bug, sometimes deleted records weren't removed from the
+		file system
+	- Added a feature to limit the number of records in memory (cache size)
+		(thanks to Michael Pepper for the testing && suggesting 
+		features)
+

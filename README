@@ -20,3 +20,12 @@
 
  For comments, bugs or just to say you use or hate this class feel free
  to send me an e-mail.
+
+ Installation
+ ---------------------------------------------------------------------------
+ As usual:
+
+	perl Makefile.PL
+	make
+	make test
+	make install

@@ -1,6 +1,6 @@
 package AsciiDB::TagRecord;
 
-# Copyright (c) 1997 Jose A. Rodriguez. All rights reserved.
+# Copyright (c) 1997,1998 Jose A. Rodriguez. All rights reserved.
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
 
@@ -80,13 +80,12 @@ sub DESTROY {
 sub load {
 	my $self = shift;
 
-	my $fieldName = '';
-
 	open (RECORD, $self->{_FILENAME})
 		or croak "Can't open $self->{_FILENAME} record";
 
 	flock(RECORD, 1) if $self->{_LOCK}; # Get shared lock
 
+	my $fieldName = '';
 	my $line;
 	while (defined ($line = <RECORD>)) {
 		if ($line =~ /^\[(.+)\]:\s?(.*)$/) {
