@@ -7,9 +7,18 @@ package AsciiDB::TagFile;
 require Tie::Hash;
 @ISA = (Tie::Hash);
 
-use vars qw($VERSION);
+use Cwd;
 
-$VERSION = '1.04';
+use vars qw($VERSION $catPathFileName);
+
+BEGIN {
+	eval "use File::Spec";
+	$catPathFileName = ($@) ?
+		sub { join('/', @_) } : # Unix way
+		sub { File::Spec->catfile(@_) }; # Portable way
+}
+
+$VERSION = '1.05';
 
 use Carp;
 use AsciiDB::TagRecord;
@@ -19,7 +28,7 @@ sub TIEHASH {
 	my %params = @_;
 
 	my $self = {};
-	$self->{_DIRECTORY} = $params{DIRECTORY} || '.';
+	$self->{_DIRECTORY} = $params{DIRECTORY} || cwd;
 	$self->{_SUFIX} = $params{SUFIX} || '';
 	$self->{_SCHEMA} = $params{SCHEMA};
 	$self->{_READONLY} = $params{READONLY};
@@ -78,11 +87,11 @@ sub FIRSTKEY {
 	my %currentKeys;
 
 	my $sufix = $self->{_SUFIX};
+
 	map { $currentKeys{$_} = 1 } 
 		map { $self->decodeKey($_) }
-		grep { $_  =~ /\/([^\/]+)$sufix$/; 
-			my $accept = -f $_; $_ = $1; $accept; } 
-		glob $self->{_DIRECTORY} . '/*' . $sufix;
+		grep { $_  =~ /(.+)\Q$sufix\E$/; $_ = $1 } 
+		$self->getDirFiles();
 	map { $currentKeys{$_} = 1 } grep(!/^_/, keys %$self);
 
 	my @currentKeys = keys %currentKeys;
@@ -158,13 +167,6 @@ sub newRecord {
 	$self->{$key} = \%record;
 }
 
-sub fileName {
-	my $self = shift;
-	my ($key) = $self->encodeKey(@_);
-
-	"$$self{_DIRECTORY}/$key$$self{_SUFIX}";
-}
-
 sub encodeKey {
 	my $self = shift;
 	my ($key) = @_;
@@ -179,6 +181,26 @@ sub decodeKey {
 
 	my $decodeSub = $self->{_SCHEMA}{KEY}{DECODE};
 	($decodeSub) ? &$decodeSub($key) : $key;
+}
+
+sub fileName {
+	my $self = shift;
+	my ($key) = $self->encodeKey(@_);
+
+	&$catPathFileName($$self{_DIRECTORY}, "$key$$self{_SUFIX}")
+}
+
+sub getDirFiles {
+	my $self = shift;
+
+	local *DIR;
+	opendir(DIR, $$self{_DIRECTORY})
+		|| die "Can't opendir $$self{_DIRECTORY}: $!";
+	my @files = grep { -f &$catPathFileName($$self{_DIRECTORY}, $_) } 
+		readdir(DIR);
+	closedir DIR;
+
+	@files;
 }
 
 1;

@@ -12,7 +12,8 @@ my $fileName;
 
 { # Open scope
 
-require 't/tietag.pl';
+push(@INC, 't');
+require 'tietag.pl';
 my $tieObj = tied(%tietag);
 print "ok 1\n";
 

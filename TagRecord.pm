@@ -7,7 +7,7 @@ package AsciiDB::TagRecord;
 require Tie::Hash;
 @ISA = (Tie::Hash);
 
-$VERSION = '1.04';
+$VERSION = '1.05';
 
 use Carp;
 

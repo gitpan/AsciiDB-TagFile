@@ -6,7 +6,8 @@ use AsciiDB::TagFile;
 
 print "1..6\n";
 
-require 't/tietag.pl';
+push(@INC, 't');
+require 'tietag.pl';
 print "ok 1\n";
 
 $tietag{'record1'}{'a'} = 'Fa';

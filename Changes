@@ -26,7 +26,8 @@ Revision history for Perl extension AsciiDB::TagFile.
 		features)
 
 1.04  Sat Feb 27 13:05:27 1999
-	Repported by Carsten Heyl <heyl@kirk.nads.de>:
+	Repported by Carsten Heyl <heyl@kirk.nads.de> and
+		"Garnet R. Chaney" <gchaney@webmill.com>:
 
 	- Fixed bug that prevented the value "0" from being written
 
@@ -34,3 +35,12 @@ Revision history for Perl extension AsciiDB::TagFile.
 
 	- Added a feature to encode/decode keys when saved to the filesystem
 
+1.05  Mon Mar  1 17:05:15 1999
+	Repported by Chris Nandor <pudge@pobox.com>
+
+	- Module was Unix dependent (used '/' as path component separator,
+		'.' as current directory, etc.)
+	  	Now the module uses File::Spec (if available) and Cwd, so
+		it should be truly portable.
+	
+	Thanks to Chris Nandor for his help (debugging).

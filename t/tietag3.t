@@ -4,7 +4,8 @@ use AsciiDB::TagFile;
 
 print "1..5\n";
 
-require 't/tietag.pl';
+push(@INC, 't');
+require 'tietag.pl';
 my $tieObj = tied(%tietag);
 print "ok 1\n";
 
@@ -25,6 +26,7 @@ print "ok 4\n";
 my $notOk = 0;
 my @realKeys = sort keys %tietag;
 my @testKeys = sort qw(record2);
+print STDERR "\nKEYS: @realKeys\n" if $ENV{DEBUG};
 while (@realKeys || @testKeys) {
 	my $realKey = shift @realKeys;
 	my $testKey = shift @testKeys;

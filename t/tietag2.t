@@ -4,7 +4,8 @@ use AsciiDB::TagFile;
 
 print "1..9\n";
 
-require 't/tietag.pl';
+push(@INC, 't');
+require 'tietag.pl';
 print "ok 1\n";
 
 ($tietag{'record1'}{'a'} eq 'Fa') or print "not ";

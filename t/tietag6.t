@@ -10,7 +10,8 @@ $records = 50;
 print "1..3\n";
 
 @TEST_SETTINGS = (CACHESIZE => $cacheSize);
-require 't/tietag.pl';
+push(@INC, 't');
+require 'tietag.pl';
 my $tieObj = tied(%tietag);
 
 foreach (1..$records) {

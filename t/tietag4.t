@@ -7,7 +7,8 @@ use vars qw(@TEST_SETTINGS);
 print "1..3\n";
 
 @TEST_SETTINGS = (READONLY => 1);
-require 't/tietag.pl';
+push(@INC, 't');
+require 'tietag.pl';
 my $tieObj = tied(%tietag);
 print "ok 1\n";
 
