@@ -2,7 +2,7 @@
  AsciiDB::Tag - Tie class for a simple ASCII database
  ===========================================================================
                                                    Jose A. Rodriguez Garrido
-                                                            josear@ac.upc.es
+                                                       josear+cpan@ac.upc.es
 
  Usually when you have to store persistent data you don't need a full-blown
  database server, just a ASCII database would do the trick.
@@ -29,3 +29,5 @@
 	make
 	make test
 	make install
+
+

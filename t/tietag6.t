@@ -1,19 +1,17 @@
 #!./perl -w
-
 # Test the 'limit cache size' feature
 
 use AsciiDB::TagFile;
+use vars qw(@TEST_SETTINGS);
 
 $cacheSize = 10;
 $records = 50;
 
 print "1..3\n";
 
-my $tieObj = tie %tietag, 'AsciiDB::TagFile',
-	DIRECTORY => 'tdata',
-	SUFIX => '.tfr', 
-	CACHESIZE => $cacheSize,
-	SCHEMA => { ORDER => ['a', 'b', 'c'] };
+@TEST_SETTINGS = (CACHESIZE => $cacheSize);
+require 't/tietag.pl';
+my $tieObj = tied(%tietag);
 
 foreach (1..$records) {
 	$tietag{"R$_"}{'a'} = $_;

@@ -25,3 +25,12 @@ Revision history for Perl extension AsciiDB::TagFile.
 		(thanks to Michael Pepper for the testing && suggesting 
 		features)
 
+1.04  Sat Feb 27 13:05:27 1999
+	Repported by Carsten Heyl <heyl@kirk.nads.de>:
+
+	- Fixed bug that prevented the value "0" from being written
+
+	Suggested by Carsten Heyl <heyl@kirk.nads.de>:
+
+	- Added a feature to encode/decode keys when saved to the filesystem
+

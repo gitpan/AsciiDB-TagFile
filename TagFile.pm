@@ -1,6 +1,6 @@
 package AsciiDB::TagFile;
 
-# Copyright (c) 1997,1998 Jose A. Rodriguez. All rights reserved.
+# Copyright (c) 1997,1998,1999 Jose A. Rodriguez. All rights reserved.
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
 
@@ -9,7 +9,7 @@ require Tie::Hash;
 
 use vars qw($VERSION);
 
-$VERSION = '1.03';
+$VERSION = '1.04';
 
 use Carp;
 use AsciiDB::TagRecord;
@@ -78,8 +78,10 @@ sub FIRSTKEY {
 	my %currentKeys;
 
 	my $sufix = $self->{_SUFIX};
-	map { $currentKeys{$_} = 1 } grep { $_  =~ /\/([^\/]+)$sufix$/; 
-		my $accept = -f $_; $_ = $1; $accept; } 
+	map { $currentKeys{$_} = 1 } 
+		map { $self->decodeKey($_) }
+		grep { $_  =~ /\/([^\/]+)$sufix$/; 
+			my $accept = -f $_; $_ = $1; $accept; } 
 		glob $self->{_DIRECTORY} . '/*' . $sufix;
 	map { $currentKeys{$_} = 1 } grep(!/^_/, keys %$self);
 
@@ -158,9 +160,25 @@ sub newRecord {
 
 sub fileName {
 	my $self = shift;
-	my ($key) = @_;
+	my ($key) = $self->encodeKey(@_);
 
 	"$$self{_DIRECTORY}/$key$$self{_SUFIX}";
+}
+
+sub encodeKey {
+	my $self = shift;
+	my ($key) = @_;
+
+	my $encodeSub = $self->{_SCHEMA}{KEY}{ENCODE};
+	($encodeSub) ? &$encodeSub($key) : $key;
+}
+
+sub decodeKey {
+	my $self = shift;
+	my ($key) = @_;
+
+	my $decodeSub = $self->{_SCHEMA}{KEY}{DECODE};
+	($decodeSub) ? &$decodeSub($key) : $key;
 }
 
 1;
@@ -182,6 +200,10 @@ AsciiDB::TagFile - Tie class for a simple ASCII database
 	FILEMODE => $mode,
         SCHEMA => { 
 		ORDER => $arrayRef 
+		KEY => {
+			ENCODE => $subRef,
+			DECODE => $subRef
+		}
 	};
 
  # Save to disk all changed records
@@ -203,7 +225,7 @@ AsciiDB::TagFile - Tie class for a simple ASCII database
  # Get a field
  $scalar = $hash{$recordKey}{$fieldName};
 
- # Assign a field
+ # Assign to a field
  $hash{$recordKey}{$fieldName} = $value; 
 
 =head1 DESCRIPTION
@@ -298,14 +320,15 @@ default permissions.
 =item SCHEMA
 
 This parameter is a hash reference that contains the database definition.
-Currently you can specify only in which order fields will be saved in the
+
+With ORDER you can specify in which order fields will be saved into the
 file.
 
 For example,
 
-        SCHEMA => {
-                ORDER => [ 'fieldHi', 'field2There', 'fieldWorld' ]
-        };
+ SCHEMA => {
+	ORDER => [ 'fieldHi', 'field2There', 'fieldWorld' ]
+ }
 
 will save the record this way:
 
@@ -315,6 +338,25 @@ will save the record this way:
 
 Note: this parameter is mandatory, and you have to specify all the
 fields. B<If you forget to list a field it will not be saved>.
+
+With KEY,ENCODE and KEY,DECODE you can define an special encoding
+for keys when used as filenames.
+
+For example, if using this SCHEMA:
+
+ SCHEMA => {
+         ORDER => ['a', 'b', 'c'],
+         KEY => {
+                 ENCODE => sub { $_[0] =~ s{/}{_SLASH_}g; $_[0] },
+                 DECODE => sub { $_[0] =~ s{_SLASH_}{/}g; $_[0] },
+         }
+ }
+
+a record with the key 's1/s2' will be saved into filename 's1_SLASH_s2'.
+The DECODE subroutine is used to traslate back to the original key.
+
+NOTE: You should use this feature if you allow filesystem metacharacters
+(as '/', used in Unix to split path components) in your keys. 
 
 =back
 

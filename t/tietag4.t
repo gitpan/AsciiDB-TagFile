@@ -1,15 +1,14 @@
 #!./perl -w
+# Test the READONLY feature
 
 use AsciiDB::TagFile;
+use vars qw(@TEST_SETTINGS);
 
 print "1..3\n";
 
-tie %tietag, 'AsciiDB::TagFile',
-	DIRECTORY => 'tdata',
-	SUFIX => '.tfr', 
-	READONLY => 1,
-	SCHEMA => { ORDER => ['a', 'b', 'c'] };
-
+@TEST_SETTINGS = (READONLY => 1);
+require 't/tietag.pl';
+my $tieObj = tied(%tietag);
 print "ok 1\n";
 
 $tietag{'record2'}{'b'} = 'NOTVALID';
@@ -17,7 +16,7 @@ $tietag{'record2'}{'b'} = 'NOTVALID';
 print "ok 2\n";
 
 delete $tietag{'record2'};
-print "not " if ! -f 'tdata/record2.tfr';
+print "not " if ! -f $tieObj->fileName('record2');
 print "ok 3\n";
 
-unlink 'tdata/record2.tfr' if -f 'tdata/record2.tfr';
+unlink $tieObj->fileName('record2') if -f $tieObj->fileName('record2');

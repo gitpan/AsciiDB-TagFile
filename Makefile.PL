@@ -5,7 +5,7 @@ WriteMakefile(
     NAME => 'AsciiDB::TagFile',
     VERSION_FROM => 'TagFile.pm',
     'dist' => {
-	TARFLAGS => 'cvfF', 
+	TARFLAGS => 'cvf', 
 	COMPRESS => 'gzip', 
 	SUFFIX => 'gz',
     },

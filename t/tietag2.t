@@ -2,14 +2,9 @@
 
 use AsciiDB::TagFile;
 
-print "1..7\n";
+print "1..9\n";
 
-tie %tietag, 'AsciiDB::TagFile',
-	DIRECTORY => 'tdata',
-	SUFIX => '.tfr', 
-	LOCK => 1,
-	SCHEMA => { ORDER => ['a', 'b', 'c'] };
-
+require 't/tietag.pl';
 print "ok 1\n";
 
 ($tietag{'record1'}{'a'} eq 'Fa') or print "not ";
@@ -24,7 +19,7 @@ print "ok 4\n";
 (!exists $tietag{'NOEXISTS'}) or print "not ";
 print "ok 5\n";
 
-# Test record copy
+# Bug: record copy not working
 $tietag{'record1'} = $tietag{'record1'};
 $tietag{'record3'} = $tietag{'record1'};
 $tietag{'record3'}{'a'} = 'AValueForRecord3';
@@ -33,3 +28,12 @@ print "ok 6\n";
 
 ($tietag{'record3'}{'b'} eq $tietag{'record1'}{'b'}) or print "not ";
 print "ok 7\n";
+
+# Bug: 0 values not written
+($tietag{'record1'}{'zero'} eq '0') or print "not ";
+print "ok 8\n";
+
+# Encode/Decode: Without this feature special characters like '/'
+# can't be used in a key, becase the produce invalid filenames
+($tietag{'string/string'}{'zero'} eq '0') or print "not ";
+print "ok 9\n";

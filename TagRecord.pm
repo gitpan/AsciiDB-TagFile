@@ -1,13 +1,13 @@
 package AsciiDB::TagRecord;
 
-# Copyright (c) 1997,1998 Jose A. Rodriguez. All rights reserved.
+# Copyright (c) 1997,1998,1999 Jose A. Rodriguez. All rights reserved.
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
 
 require Tie::Hash;
 @ISA = (Tie::Hash);
 
-$VERSION = '1.00';
+$VERSION = '1.04';
 
 use Carp;
 
@@ -74,7 +74,7 @@ sub DELETE {
 sub DESTROY {
 	my $self = shift;
 
-	$self->sync ();
+	$self->sync();
 }
 
 sub load {
@@ -97,9 +97,7 @@ sub load {
 		$self->{$fieldName} .= "\n$line";
 	}
 
-	flock(RECORD, 8) if $self->{_LOCK}; # Unlock file
-
-	close (RECORD);
+	close (RECORD); # This close unlocks the file
 
 	$self->{_LOADED} = 1;
 	delete $self->{_UPDATED};
@@ -125,13 +123,12 @@ sub sync {
 	my %schema = %{$self->{_SCHEMA}};
 	my $fieldName;
 	foreach $fieldName (@{$schema{ORDER}}) {
-		print RECORD "[$fieldName]: ", 
-			($self->{$fieldName} || ''), "\n";
+		print RECORD ("[$fieldName]: ", 
+			defined($self->{$fieldName}) ? 
+			$self->{$fieldName} : '', "\n");
 	}
 
-	flock(RECORD, 8) if $self->{_LOCK}; # Unlock file
-
-	close (RECORD);
+	close (RECORD); # This close unlocks the file
 
 	if (defined $self->{_FILEMODE}) {
 		chmod ($self->{_FILEMODE}, $self->{_FILENAME})
