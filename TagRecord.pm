@@ -1,13 +1,13 @@
 package AsciiDB::TagRecord;
 
-# Copyright (c) 1997,1998,1999 Jose A. Rodriguez. All rights reserved.
+# Copyright (c) 1997-2001 Jose A. Rodriguez. All rights reserved.
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
 
 require Tie::Hash;
 @ISA = (Tie::Hash);
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 use Carp;
 

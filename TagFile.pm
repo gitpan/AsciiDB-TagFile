@@ -1,6 +1,6 @@
 package AsciiDB::TagFile;
 
-# Copyright (c) 1997,1998,1999 Jose A. Rodriguez. All rights reserved.
+# Copyright (c) 1997-2001 Jose A. Rodriguez. All rights reserved.
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
 
@@ -18,7 +18,7 @@ BEGIN {
 		sub { File::Spec->catfile(@_) }; # Portable way
 }
 
-$VERSION = '1.05';
+$VERSION = '1.06';
 
 use Carp;
 use AsciiDB::TagRecord;
@@ -128,8 +128,12 @@ sub DELETE {
 sub sync {
 	my $self = shift;
 
+	my @recordsToSync = grep { 
+		ref $_ && ref($_) eq 'HASH' && tied(%$_) 
+	} values %{$self};
+
 	my $record;
-	foreach $record (grep { tied(%$_) } values %{$self}) {
+	foreach $record (@recordsToSync) {
 		tied(%$record)->sync();
 	}
 }
@@ -255,7 +259,7 @@ AsciiDB::TagFile - Tie class for a simple ASCII database
 The B<AsciiDB::TagFile> provides a hash-table-like interface to a simple ASCII
 database.
 
-The ASCII database stores each record in a file:
+The ASCII database stores each record in into a file:
 
 	$directory/recordKey1$sufix
 	$directory/recordKey2$sufix
@@ -358,7 +362,7 @@ will save the record this way:
 	[fieldThere]: ...
 	[fieldWorld]: ...
 
-Note: this parameter is mandatory, and you have to specify all the
+NOTE: this parameter is MANDATORY, and you have to specify all the
 fields. B<If you forget to list a field it will not be saved>.
 
 With KEY,ENCODE and KEY,DECODE you can define an special encoding

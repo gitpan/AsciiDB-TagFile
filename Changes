@@ -44,3 +44,6 @@ Revision history for Perl extension AsciiDB::TagFile.
 		it should be truly portable.
 	
 	Thanks to Chris Nandor for his help (debugging).
+
+1.06  Fri Feb  2 10:11:01 2001
+	- Fixes to work with perl 5.6.0; by Jose A. Rodriguez <josear@ac.upc.es>

@@ -29,7 +29,7 @@ $tietag{'record1'}{'zero'} = '0';
 print "ok 5\n";
 
 # Encode/Decode: Without this feature special characters like '/'
-# can't be used in a key, becase the produce invalid filenames
-$tietag{'string/string'}{'zero'} = '0';
-($tietag{'string/string'}{'zero'} eq '0') or print "not ";
+# can't be used in a key, becase they produce invalid filenames
+$tietag{'string/string'}{'a'} = '0';
+($tietag{'string/string'}{'a'} eq '0') or print "not ";
 print "ok 6\n";
